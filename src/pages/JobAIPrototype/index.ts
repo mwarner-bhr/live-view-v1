@@ -1,0 +1,1 @@
+export { JobAIPrototype } from './JobAIPrototype';

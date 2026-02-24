@@ -1,0 +1,1 @@
+export { PeopleListView } from './PeopleListView';

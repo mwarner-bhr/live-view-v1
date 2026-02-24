@@ -1,0 +1,1 @@
+export { TalentPoolCard } from './TalentPoolCard';

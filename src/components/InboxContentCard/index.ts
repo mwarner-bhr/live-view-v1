@@ -1,0 +1,1 @@
+export { InboxContentCard } from './InboxContentCard';

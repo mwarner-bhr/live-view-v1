@@ -1,0 +1,14 @@
+export { Home } from './Home';
+export { MyInfo } from './MyInfo';
+export { People } from './People';
+export { Hiring } from './Hiring';
+export { Reports } from './Reports';
+export { Files } from './Files';
+export { Payroll } from './Payroll';
+export { Settings } from './Settings';
+export { Inbox } from './Inbox';
+export { NewEmployeePage } from './NewEmployeePage';
+export { DatePickerDemo } from './DatePickerDemo';
+export { CreateJobOpening } from './CreateJobOpening';
+export { JobAIPrototype } from './JobAIPrototype';
+export { TimeAttendance } from './TimeAttendance';
