@@ -29,16 +29,22 @@ export function WorkforcePulse({ embedded = false }: WorkforcePulseProps) {
         <div className="grid gap-4 xl:grid-cols-[3fr_1fr]">
           <div className="rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-[20px] leading-[28px] font-semibold text-[var(--color-primary-strong)]" style={{ fontFamily: 'Fields, system-ui, sans-serif' }}>
-                People
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-[20px] leading-[28px] font-semibold text-[var(--color-primary-strong)]" style={{ fontFamily: 'Fields, system-ui, sans-serif' }}>
+                  People
+                </h3>
+                <span className="inline-flex items-center gap-1 rounded-[1000px] bg-[var(--color-primary-weak)] px-2 py-1 text-[12px] font-semibold text-[var(--color-primary-strong)]">
+                  <span className="inline-block h-2 w-2 rounded-full bg-[var(--color-primary-strong)]" />
+                  Live {new Date(live.lastUpdated).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </span>
+              </div>
               <SearchInput value={search} onChange={setSearch} ariaLabel="Search direct reports" />
             </div>
             <PeopleTab
               employees={live.employees}
               search={search}
               onEmployeeSelect={setSelectedEmployee}
-              className="mt-3 rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4"
+              className="mt-3 bg-[var(--surface-neutral-white)]"
             />
           </div>
 

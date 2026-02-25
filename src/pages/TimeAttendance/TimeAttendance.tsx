@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Icon } from '../../components';
 import { WorkforcePulse } from '../WorkforcePulse';
 
-const tabs = ['Dashboard', 'Scheduler', 'Timesheets', 'Project Tracking'] as const;
+const tabs = ['My Team', 'Scheduler', 'Timesheets', 'Project Tracking'] as const;
 type TabKey = typeof tabs[number];
 
 type ShiftType = 'teal' | 'purple' | 'vacation';
@@ -621,7 +621,7 @@ function Scheduler({ weekOffset, onWeekOffsetChange }: SchedulerProps) {
 }
 
 export function TimeAttendance() {
-  const [activeTab, setActiveTab] = useState<TabKey>('Dashboard');
+  const [activeTab, setActiveTab] = useState<TabKey>('My Team');
   const [weekOffset, setWeekOffset] = useState(0);
 
   return (
@@ -662,7 +662,7 @@ export function TimeAttendance() {
 
         <div className="mt-4 h-px bg-[var(--border-neutral-x-weak)]" />
 
-        {activeTab !== 'Scheduler' && activeTab !== 'Dashboard' && (
+        {activeTab !== 'Scheduler' && activeTab !== 'My Team' && (
           <div className="mt-3 flex items-center justify-between">
             <Button variant="standard" size="small" icon="sliders" showCaret>
               Filters (2)
@@ -685,7 +685,7 @@ export function TimeAttendance() {
           </div>
         )}
 
-        {activeTab === 'Dashboard' ? (
+        {activeTab === 'My Team' ? (
           <div className="mt-4">
             <WorkforcePulse embedded />
           </div>

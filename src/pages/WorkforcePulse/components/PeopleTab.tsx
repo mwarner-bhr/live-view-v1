@@ -155,10 +155,6 @@ export function PeopleTab({ employees, search, className, onEmployeeSelect }: Pe
 
   return (
     <section className={className ?? 'mt-4 rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4'}>
-      <h4 className="text-[26px] leading-[32px] font-semibold text-[var(--text-neutral-xx-strong)]" style={{ fontFamily: 'Fields, system-ui, sans-serif' }}>
-        Live Team Status
-      </h4>
-
       {(['attention', 'monitor', 'stable'] as GroupKey[]).map((group) => {
         const items = grouped[group];
         if (items.length === 0) return null;
