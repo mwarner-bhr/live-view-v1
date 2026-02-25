@@ -12,6 +12,13 @@ interface TimeOffRequest {
   status: RequestStatus;
 }
 
+interface AccrualRisk {
+  id: string;
+  employeeName: string;
+  remainingHours: number;
+  requestedHours: number;
+}
+
 const seedRequests: TimeOffRequest[] = [
   {
     id: 'tor-1',
@@ -37,6 +44,12 @@ const seedRequests: TimeOffRequest[] = [
     submittedAt: 'Submitted yesterday',
     status: 'PENDING',
   },
+];
+
+const accrualRisks: AccrualRisk[] = [
+  { id: 'ar-1', employeeName: 'Ben Proctor', remainingHours: 6, requestedHours: 8 },
+  { id: 'ar-2', employeeName: 'Liam Carter', remainingHours: 3.5, requestedHours: 6 },
+  { id: 'ar-3', employeeName: 'Janet Caldwell', remainingHours: 5, requestedHours: 8 },
 ];
 
 export function TimeOffRequestsPanel() {
@@ -120,6 +133,28 @@ export function TimeOffRequestsPanel() {
         <Icon name="circle-info" size={11} />
         Requests update immediately in this preview.
       </p>
+
+      <div className="mt-4 rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] p-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[13px] font-semibold text-[var(--text-neutral-xx-strong)]">Low Accrual Watch</p>
+          <span className="text-[11px] text-[var(--text-neutral-medium)]">Near limit</span>
+        </div>
+        <ul className="mt-2 space-y-2">
+          {accrualRisks.map((risk) => (
+            <li key={risk.id} className="rounded-[10px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] px-2 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[13px] font-medium text-[var(--text-neutral-xx-strong)]">{risk.employeeName}</p>
+                <span className="rounded-[1000px] bg-[#fee2e2] px-2 py-0.5 text-[11px] font-semibold text-[#991b1b]">
+                  {risk.remainingHours}h left
+                </span>
+              </div>
+              <p className="mt-1 text-[12px] text-[var(--text-neutral-medium)]">
+                Requested {risk.requestedHours}h off. Review balance before approval.
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }
