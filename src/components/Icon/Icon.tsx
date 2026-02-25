@@ -90,7 +90,6 @@ import {
   faRotateLeft,
   faStopwatch,
   faMugHot,
-  faClockRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -284,7 +283,7 @@ const faIconMap = {
   'clock': faClock,
   'stopwatch': faStopwatch,
   'mug-hot': faMugHot,
-  'calendar-clock': faClockRotateLeft,
+  'calendar-clock': faCalendar,
   'clock-regular': faClockRegular,
   'wrench': faWrench,
   'calendar': faCalendar,
