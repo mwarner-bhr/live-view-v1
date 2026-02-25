@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '../../../components';
 import { JobLocationOption } from '../../../components/JobLocationOption';
-import type { JobSuggestion } from '../mockData';
 import { generateSuggestions, simulateAIDelay, getMatchingJobTitles } from '../mockData';
 
 export function AutocompleteDropdown() {

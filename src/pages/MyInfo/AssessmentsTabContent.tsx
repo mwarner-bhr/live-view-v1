@@ -5,7 +5,7 @@ interface AssessmentsTabContentProps {
   employeeName: string;
 }
 
-export function AssessmentsTabContent({ employeeName }: AssessmentsTabContentProps) {
+export function AssessmentsTabContent({ employeeName: _employeeName }: AssessmentsTabContentProps) {
   const [dateRange, setDateRange] = useState('jan-apr-2024');
 
   // Date range options

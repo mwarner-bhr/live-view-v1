@@ -1,4 +1,5 @@
 import { Icon } from '../Icon';
+import type { IconName } from '../Icon/Icon';
 
 interface FeedbackCardProps {
   authorName: string;
@@ -39,7 +40,7 @@ export function FeedbackCard({
           />
         ) : (
           <div className="w-12 h-12 rounded-xl bg-[var(--surface-neutral-xx-weak)] flex items-center justify-center">
-            <Icon name={iconName} size={24} className="text-[var(--color-primary-strong)]" />
+            <Icon name={iconName as unknown as IconName} size={24} className="text-[var(--color-primary-strong)]" />
           </div>
         )}
 

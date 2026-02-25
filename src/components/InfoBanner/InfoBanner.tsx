@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Checkbox } from '../Checkbox';
 
 interface InfoBannerProps {

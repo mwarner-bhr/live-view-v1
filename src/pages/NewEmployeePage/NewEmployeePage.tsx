@@ -5,7 +5,6 @@ import {
   InfoBanner,
   TextInput,
   FormDropdown,
-  Checkbox,
   Icon,
 } from '../../components';
 import { employees } from '../../data/employees';

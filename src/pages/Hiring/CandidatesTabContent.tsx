@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Icon, Dropdown, StarRating } from '../../components';
+import { Icon, StarRating } from '../../components';
 import { candidates } from '../../data/candidates';
 
 export function CandidatesTabContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('still-in-running');
-  const [expandedFilters, setExpandedFilters] = useState<Set<string>>(new Set(['job-statuses']));
+  const [_expandedFilters, setExpandedFilters] = useState<Set<string>>(new Set(['job-statuses']));
 
   const statusOptions = [
     { value: 'still-in-running', label: 'Still in the Running' },
@@ -99,7 +99,7 @@ export function CandidatesTabContent() {
           </div>
 
           {/* Filter Sections */}
-          {filterSections.map((section, index) => (
+          {filterSections.map((section, _index) => (
             <div key={section.id} className="relative">
               <button
                 onClick={() => toggleFilter(section.id)}
@@ -170,7 +170,7 @@ export function CandidatesTabContent() {
                 </tr>
               </thead>
               <tbody>
-                {candidates.map((candidate, index) => (
+                {candidates.map((candidate, _index) => (
                   <tr
                     key={candidate.id}
                     className="border-t border-[var(--border-neutral-x-weak)] hover:bg-[var(--surface-neutral-xx-weak)] transition-colors"

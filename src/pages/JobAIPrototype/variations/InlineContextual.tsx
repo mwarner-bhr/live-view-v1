@@ -86,7 +86,7 @@ export function InlineContextual() {
     field,
     value,
     reason,
-    onAccept
+    onAccept: _onAccept
   }: {
     field: string;
     value: string;
