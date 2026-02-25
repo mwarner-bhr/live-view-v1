@@ -5,6 +5,7 @@ import { SearchInput } from './components/SearchInput';
 import { PeopleTab } from './components/PeopleTab';
 import { AIInsightsPanel } from './components/AIInsightsPanel';
 import { EmployeeDetailsModal } from './components/EmployeeDetailsModal';
+import { TimeOffRequestsPanel } from './components/TimeOffRequestsPanel';
 import type { EmployeeRecord } from './types';
 
 interface WorkforcePulseProps {
@@ -41,7 +42,10 @@ export function WorkforcePulse({ embedded = false }: WorkforcePulseProps) {
             />
           </div>
 
-          <AIInsightsPanel exceptions={live.exceptions} counts={live.counts} lastUpdated={live.lastUpdated} />
+          <div className="space-y-4">
+            <AIInsightsPanel exceptions={live.exceptions} counts={live.counts} lastUpdated={live.lastUpdated} />
+            <TimeOffRequestsPanel />
+          </div>
         </div>
       </section>
 
