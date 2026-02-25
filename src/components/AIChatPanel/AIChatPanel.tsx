@@ -4,6 +4,14 @@ import { recentConversations } from '../../data/chatData';
 import type { ChatConversation } from '../../data/chatData';
 import MarkdownContent from '../MarkdownContent';
 
+const CHAT_SEEDED_PROMPT_KEY = 'bhr-chat-seeded-prompt';
+const CHAT_SEEDED_PROMPT_EVENT = 'bhr-chat-seeded-prompt';
+const EMPTY_CONVERSATION: ChatConversation = {
+  id: 'ask-ai-empty',
+  title: 'Ask AI',
+  messages: [],
+};
+
 interface AIChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,7 +21,7 @@ interface AIChatPanelProps {
 
 export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
-  const [selectedConversation, setSelectedConversation] = useState<ChatConversation>(recentConversations[0]);
+  const [selectedConversation, setSelectedConversation] = useState<ChatConversation>(EMPTY_CONVERSATION);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +46,22 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const consumeSeededPrompt = () => {
+      const seededPrompt = localStorage.getItem(CHAT_SEEDED_PROMPT_KEY);
+      if (!seededPrompt) return;
+      setSelectedConversation(EMPTY_CONVERSATION);
+      setInputValue(seededPrompt);
+      localStorage.removeItem(CHAT_SEEDED_PROMPT_KEY);
+    };
+
+    if (isOpen) consumeSeededPrompt();
+
+    const handleSeededPrompt = () => consumeSeededPrompt();
+    window.addEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
+    return () => window.removeEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
+  }, [isOpen]);
 
   const handleExpand = () => {
     onExpandChange(true);
@@ -126,6 +150,10 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
           {/* New Chat Button */}
           <div className="px-4 py-3">
             <button
+              onClick={() => {
+                setSelectedConversation(EMPTY_CONVERSATION);
+                setInputValue('');
+              }}
               className="w-full flex items-center gap-3 px-4 py-3 text-[15px] font-medium text-[var(--text-neutral-x-strong)] hover:bg-[var(--surface-neutral-xx-weak)] rounded-[var(--radius-xx-small)] transition-colors"
             >
               <Icon name="pen-to-square" size={16} className="text-[var(--icon-neutral-x-strong)]" />

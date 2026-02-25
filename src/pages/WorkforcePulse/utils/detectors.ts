@@ -298,6 +298,15 @@ export function mutateEmployeesForSimulation(employees: EmployeeRecord[], settin
 
   if (!pick) return next;
 
+  next.forEach((employee) => {
+    if (employee.scheduleTag === 'UNSCHEDULED' || employee.scheduleTag === 'PTO') {
+      employee.status = 'CLOCKED_OUT';
+      employee.currentSession.clockInTime = undefined;
+      employee.currentSession.breakStartTime = undefined;
+      employee.lastClockOutAt = now.toISOString();
+    }
+  });
+
   if (pick.status === 'CLOCKED_IN') {
     if (Math.random() > 0.6) {
       pick.status = 'ON_BREAK';
@@ -319,6 +328,11 @@ export function mutateEmployeesForSimulation(employees: EmployeeRecord[], settin
       pick.currentSession.breakStartTime = undefined;
     }
   } else {
+    if (pick.scheduleTag === 'UNSCHEDULED' || pick.scheduleTag === 'PTO') {
+      pick.lastClockOutAt = now.toISOString();
+      return next;
+    }
+
     if (Math.random() > 0.5) {
       pick.status = 'CLOCKED_IN';
       pick.currentSession.clockInTime = now.toISOString();
