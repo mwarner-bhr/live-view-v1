@@ -6,6 +6,7 @@ import MarkdownContent from '../MarkdownContent';
 
 const CHAT_SEEDED_PROMPT_KEY = 'bhr-chat-seeded-prompt';
 const CHAT_SEEDED_PROMPT_EVENT = 'bhr-chat-seeded-prompt';
+const CHAT_SEEDED_AUTO_SEND_KEY = 'bhr-chat-seeded-auto-send';
 const TIME_ATTENDANCE_CONTEXT_KEY = 'bhr-time-attendance-context';
 const EMPTY_CONVERSATION: ChatConversation = {
   id: 'ask-ai-empty',
@@ -27,6 +28,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
   const [isSending, setIsSending] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'ready' | 'error'>('idle');
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [lastAutoSentPrompt, setLastAutoSentPrompt] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,23 +53,6 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    const consumeSeededPrompt = () => {
-      const seededPrompt = localStorage.getItem(CHAT_SEEDED_PROMPT_KEY);
-      if (!seededPrompt) return;
-      setSelectedConversation(EMPTY_CONVERSATION);
-      setLocalMessages([]);
-      setInputValue(seededPrompt);
-      localStorage.removeItem(CHAT_SEEDED_PROMPT_KEY);
-    };
-
-    if (isOpen) consumeSeededPrompt();
-
-    const handleSeededPrompt = () => consumeSeededPrompt();
-    window.addEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
-    return () => window.removeEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
-  }, [isOpen]);
 
   useEffect(() => {
     setLocalMessages(selectedConversation.messages ?? []);
@@ -96,9 +81,8 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     return data.text ?? '';
   }
 
-  const handleSend = async () => {
-    if (!inputValue.trim() || isSending) return;
-    const userText = inputValue.trim();
+  const sendMessage = async (userText: string) => {
+    if (!userText.trim() || isSending) return;
     const userMessage = {
       id: `${Date.now()}-user`,
       type: 'user' as const,
@@ -137,6 +121,43 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     } finally {
       setIsSending(false);
     }
+  };
+
+  useEffect(() => {
+    const consumeSeededPrompt = async () => {
+      const seededPrompt = localStorage.getItem(CHAT_SEEDED_PROMPT_KEY);
+      if (!seededPrompt) return;
+      const shouldAutoSend = localStorage.getItem(CHAT_SEEDED_AUTO_SEND_KEY) === 'true';
+
+      setSelectedConversation(EMPTY_CONVERSATION);
+      setLocalMessages([]);
+      localStorage.removeItem(CHAT_SEEDED_PROMPT_KEY);
+      localStorage.removeItem(CHAT_SEEDED_AUTO_SEND_KEY);
+
+      if (shouldAutoSend) {
+        setInputValue('');
+        setLastAutoSentPrompt(seededPrompt);
+        await sendMessage(seededPrompt);
+      } else {
+        setLastAutoSentPrompt(null);
+        setInputValue(seededPrompt);
+      }
+    };
+
+    if (isOpen) void consumeSeededPrompt();
+
+    const handleSeededPrompt = () => {
+      void consumeSeededPrompt();
+    };
+    window.addEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
+    return () => window.removeEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
+  }, [isOpen, isSending]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isSending) return;
+    const text = inputValue.trim();
+    setInputValue('');
+    await sendMessage(text);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -346,6 +367,14 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
 
           {/* Chat Content Area */}
           <div className={`flex-1 flex flex-col min-h-0 ${isExpanded ? 'bg-[var(--surface-neutral-white)] p-6' : 'bg-[var(--surface-neutral-white)]'}`}>
+            {lastAutoSentPrompt && (
+              <div className={isExpanded ? 'mx-auto mb-3 w-full max-w-[800px]' : 'mx-5 mt-4 mb-2'}>
+                <div className="rounded-[10px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] px-3 py-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-neutral-medium)]">Auto-sent from AI Insight</p>
+                  <p className="mt-1 text-[13px] text-[var(--text-neutral-strong)]">{lastAutoSentPrompt}</p>
+                </div>
+              </div>
+            )}
             {isExpanded ? (
               /* Expanded view - grey rounded container */
               <div className="flex-1 flex flex-col min-h-0 bg-[var(--surface-neutral-xx-weak)] rounded-[20px] overflow-hidden">

@@ -16,6 +16,7 @@ function formatTimestamp(iso: string) {
 
 const CHAT_SEEDED_PROMPT_KEY = 'bhr-chat-seeded-prompt';
 const CHAT_SEEDED_PROMPT_EVENT = 'bhr-chat-seeded-prompt';
+const CHAT_SEEDED_AUTO_SEND_KEY = 'bhr-chat-seeded-auto-send';
 
 interface InsightShortcut {
   id: string;
@@ -66,8 +67,9 @@ function summarizeInsight(exception: WorkforceException): InsightShortcut {
   };
 }
 
-function openAskAI(prompt: string) {
+function openAskAI(prompt: string, autoSend = false) {
   localStorage.setItem(CHAT_SEEDED_PROMPT_KEY, prompt);
+  localStorage.setItem(CHAT_SEEDED_AUTO_SEND_KEY, autoSend ? 'true' : 'false');
   window.dispatchEvent(new Event(CHAT_SEEDED_PROMPT_EVENT));
   localStorage.setItem('bhr-chat-expanded', 'false');
   localStorage.setItem('bhr-chat-panel-open', 'true');
@@ -113,7 +115,7 @@ export function AIInsightsPanel({ exceptions, counts, lastUpdated }: AIInsightsP
           <li key={insight.id}>
             <button
               type="button"
-              onClick={() => openAskAI(insight.prompt)}
+              onClick={() => openAskAI(insight.prompt, true)}
               className="flex w-full items-start gap-2 rounded-[12px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-3 text-left hover:bg-[var(--surface-neutral-xx-weak)]"
             >
               <Icon name="sparkles" size={14} className="mt-0.5 text-[var(--color-primary-strong)]" />
