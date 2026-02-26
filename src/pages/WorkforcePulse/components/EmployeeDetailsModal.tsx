@@ -91,8 +91,11 @@ export function EmployeeDetailsModal({ employee, onClose }: EmployeeDetailsModal
   const shiftWindow = formatShiftWindow(employee);
   const note = riskHeadline(employee, overtimePct);
   const scheduleLabel = scheduleTagLabel(employee.scheduleTag);
-  const mapUrl = location
-    ? `https://staticmap.openstreetmap.de/staticmap.php?center=${location.lat},${location.lng}&zoom=13&size=900x320&markers=${location.lat},${location.lng},red-pushpin`
+  const googleMapEmbedUrl = location
+    ? `https://www.google.com/maps?q=${encodeURIComponent(`${location.lat},${location.lng}`)}&z=13&output=embed`
+    : null;
+  const googleMapLink = location
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${location.lat},${location.lng}`)}`
     : null;
 
   return (
@@ -169,15 +172,32 @@ export function EmployeeDetailsModal({ employee, onClose }: EmployeeDetailsModal
             </p>
           </div>
 
-          {location && mapUrl ? (
+          {location && googleMapEmbedUrl ? (
             <>
               <p className="mt-1 inline-flex items-center gap-1 text-[13px] text-[var(--text-neutral-medium)]">
                 <Icon name="location-dot" size={12} />
                 {location.label} ({location.lat.toFixed(3)}, {location.lng.toFixed(3)})
               </p>
               <div className="mt-3 overflow-hidden rounded-[10px] border border-[var(--border-neutral-x-weak)]">
-                <img src={mapUrl} alt={`Map for ${employee.name} clock-in location`} className="h-[220px] w-full object-cover" />
+                <iframe
+                  title={`Map for ${employee.name} clock-in location`}
+                  src={googleMapEmbedUrl}
+                  className="h-[220px] w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
+              {googleMapLink && (
+                <a
+                  href={googleMapLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#0b4fd1] hover:underline"
+                >
+                  Open in Google Maps
+                  <Icon name="arrow-up-from-bracket" size={11} />
+                </a>
+              )}
             </>
           ) : (
             <div className="mt-3 rounded-[10px] bg-[var(--surface-neutral-xx-weak)] p-3 text-[13px] text-[var(--text-neutral-medium)]">
