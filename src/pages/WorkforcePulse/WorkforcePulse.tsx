@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorkforcePulseLive } from './hooks/useWorkforcePulseLive';
 import { HeaderSummary } from './components/HeaderSummary';
 import { SearchInput } from './components/SearchInput';
@@ -16,6 +16,42 @@ export function WorkforcePulse({ embedded = false }: WorkforcePulseProps) {
   const live = useWorkforcePulseLive();
   const [search, setSearch] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeRecord | null>(null);
+
+  useEffect(() => {
+    const contextPayload = {
+      source: 'time-attendance',
+      lastUpdated: live.lastUpdated,
+      statusSentence: live.statusSentence,
+      counts: live.counts,
+      employees: live.employees.map((employee) => ({
+        id: employee.id,
+        name: employee.name,
+        role: employee.role,
+        status: employee.status,
+        scheduleTag: employee.scheduleTag ?? null,
+        workedThisWeekHours: employee.overtime.workedThisWeekHours,
+        overtimeThresholdHours: employee.overtime.thresholdHours,
+        breakStartTime: employee.currentSession.breakStartTime ?? null,
+        location: employee.currentSession.location
+          ? {
+              label: employee.currentSession.location.label,
+              lat: employee.currentSession.location.lat,
+              lng: employee.currentSession.location.lng,
+            }
+          : null,
+      })),
+      topExceptions: live.exceptions.slice(0, 8).map((exception) => ({
+        id: exception.id,
+        title: exception.title,
+        summary: exception.summary,
+        severity: exception.severity,
+        type: exception.type,
+        employee: exception.employee.name,
+      })),
+    };
+
+    localStorage.setItem('bhr-time-attendance-context', JSON.stringify(contextPayload));
+  }, [live.lastUpdated, live.statusSentence, live.counts, live.employees, live.exceptions]);
 
   return (
     <div className={embedded ? '' : 'min-h-full bg-[var(--surface-neutral-xx-weak)] p-8'}>

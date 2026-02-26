@@ -6,6 +6,7 @@ import MarkdownContent from '../MarkdownContent';
 
 const CHAT_SEEDED_PROMPT_KEY = 'bhr-chat-seeded-prompt';
 const CHAT_SEEDED_PROMPT_EVENT = 'bhr-chat-seeded-prompt';
+const TIME_ATTENDANCE_CONTEXT_KEY = 'bhr-time-attendance-context';
 const EMPTY_CONVERSATION: ChatConversation = {
   id: 'ask-ai-empty',
   title: 'Ask AI',
@@ -22,12 +23,16 @@ interface AIChatPanelProps {
 export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIChatPanelProps) {
   const [inputValue, setInputValue] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation>(EMPTY_CONVERSATION);
+  const [localMessages, setLocalMessages] = useState<ChatConversation['messages']>(EMPTY_CONVERSATION.messages);
+  const [isSending, setIsSending] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'ready' | 'error'>('idle');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const messages = selectedConversation.messages;
+  const messages = localMessages;
   const title = selectedConversation.title;
 
   // Filter conversations based on search
@@ -52,6 +57,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
       const seededPrompt = localStorage.getItem(CHAT_SEEDED_PROMPT_KEY);
       if (!seededPrompt) return;
       setSelectedConversation(EMPTY_CONVERSATION);
+      setLocalMessages([]);
       setInputValue(seededPrompt);
       localStorage.removeItem(CHAT_SEEDED_PROMPT_KEY);
     };
@@ -63,6 +69,10 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     return () => window.removeEventListener(CHAT_SEEDED_PROMPT_EVENT, handleSeededPrompt);
   }, [isOpen]);
 
+  useEffect(() => {
+    setLocalMessages(selectedConversation.messages ?? []);
+  }, [selectedConversation]);
+
   const handleExpand = () => {
     onExpandChange(true);
   };
@@ -71,10 +81,61 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
     onExpandChange(false);
   };
 
-  const handleSend = () => {
-    if (inputValue.trim()) {
-      // In a real app, this would send the message
-      setInputValue('');
+  async function askLLM(message: string): Promise<string> {
+    const context = localStorage.getItem(TIME_ATTENDANCE_CONTEXT_KEY);
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        context: context ? JSON.parse(context) : null,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.error || 'LLM request failed');
+    return data.text ?? '';
+  }
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isSending) return;
+    const userText = inputValue.trim();
+    const userMessage = {
+      id: `${Date.now()}-user`,
+      type: 'user' as const,
+      text: userText,
+    };
+
+    setLocalMessages((prev) => [...prev, userMessage]);
+    setInputValue('');
+    setIsSending(true);
+    setConnectionStatus('connecting');
+    setConnectionError(null);
+
+    try {
+      const reply = await askLLM(userText);
+      setLocalMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-ai`,
+          type: 'ai',
+          text: reply || '(No response)',
+        },
+      ]);
+      setConnectionStatus('ready');
+    } catch (err: any) {
+      const msg = err?.message ?? String(err);
+      setLocalMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-ai-error`,
+          type: 'ai',
+          text: `Error talking to LLM: ${msg}`,
+        },
+      ]);
+      setConnectionStatus('error');
+      setConnectionError(msg);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -343,6 +404,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                     <textarea
                       placeholder="Ask Anything"
                       value={inputValue}
+                      disabled={isSending}
                       onChange={handleInput}
                       onKeyDown={handleKeyDown}
                       rows={1}
@@ -350,7 +412,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                     />
                     <button
                       onClick={handleSend}
-                      disabled={!inputValue.trim()}
+                      disabled={isSending || !inputValue.trim()}
                       className="flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-70"
                       aria-label="Send message"
                     >
@@ -360,6 +422,12 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                         className="text-[var(--icon-neutral-medium)]"
                       />
                     </button>
+                  </div>
+                  <div className="max-w-[800px] mx-auto mt-2 text-[12px] text-[var(--text-neutral-medium)]">
+                    {connectionStatus === 'idle' && 'AI status: waiting for first request'}
+                    {connectionStatus === 'connecting' && 'AI status: connecting...'}
+                    {connectionStatus === 'ready' && 'AI status: connected'}
+                    {connectionStatus === 'error' && `AI status: error${connectionError ? ` - ${connectionError}` : ''}`}
                   </div>
                 </div>
               </div>
@@ -404,6 +472,12 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
 
                 {/* Footer Input - Panel mode */}
                 <div className="bg-[var(--surface-neutral-white)] px-5 pt-4 pb-5 rounded-b-[20px] shrink-0">
+                  <div className="mb-2 text-[12px] text-[var(--text-neutral-medium)]">
+                    {connectionStatus === 'idle' && 'AI status: waiting for first request'}
+                    {connectionStatus === 'connecting' && 'AI status: connecting...'}
+                    {connectionStatus === 'ready' && 'AI status: connected'}
+                    {connectionStatus === 'error' && `AI status: error${connectionError ? ` - ${connectionError}` : ''}`}
+                  </div>
                   {/* AI gradient border wrapper */}
                   <div
                     className="relative rounded-lg p-[2px] min-h-[86px]"
@@ -417,6 +491,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                       <textarea
                         placeholder="Reply..."
                         value={inputValue}
+                        disabled={isSending}
                         onChange={handleInput}
                         onKeyDown={handleKeyDown}
                         rows={1}

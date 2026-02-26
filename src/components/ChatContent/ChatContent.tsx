@@ -8,9 +8,12 @@ interface ChatContentProps {
   className?: string;
 }
 
+const TIME_ATTENDANCE_CONTEXT_KEY = 'bhr-time-attendance-context';
+
 export function ChatContent({ className = '' }: ChatContentProps) {
   const { selectedConversation, addMessage, selectedConversationId } = useChat();
   const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,17 +24,52 @@ export function ChatContent({ className = '' }: ChatContentProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
-    if (inputValue.trim() && selectedConversationId) {
+  async function askLLM(message: string): Promise<string> {
+    const context = localStorage.getItem(TIME_ATTENDANCE_CONTEXT_KEY);
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        context: context ? JSON.parse(context) : null,
+      }),
+    });
+  
+    const data = await r.json();
+    if (!r.ok) throw new Error(data?.error || 'LLM request failed');
+    return data.text ?? '';
+  }
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || !selectedConversationId || isSending) return;
+  
+    const userText = inputValue.trim();
+  
+    // add user message immediately
+    addMessage(selectedConversationId, {
+      type: 'user',
+      text: userText,
+    });
+  
+    setInputValue('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+  
+    try {
+      setIsSending(true);
+  
+      const reply = await askLLM(userText);
+  
       addMessage(selectedConversationId, {
-        type: 'user',
-        text: inputValue.trim(),
+        type: 'ai',
+        text: reply || '(No response)',
       });
-      setInputValue('');
-      // Reset textarea height
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
+    } catch (err: any) {
+      addMessage(selectedConversationId, {
+        type: 'ai',
+        text: `Error talking to LLM: ${err?.message ?? String(err)}`,
+      });
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -79,6 +117,7 @@ export function ChatContent({ className = '' }: ChatContentProps) {
               ref={textareaRef}
               placeholder="Ask Anything"
               value={inputValue}
+              disabled={isSending}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
               rows={1}
@@ -86,7 +125,7 @@ export function ChatContent({ className = '' }: ChatContentProps) {
             />
             <button
               onClick={handleSend}
-              disabled={!inputValue.trim()}
+              disabled={isSending || !inputValue.trim()}
               className="flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-70"
               aria-label="Send message"
             >

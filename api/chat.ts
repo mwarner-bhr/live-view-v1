@@ -5,7 +5,7 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Use POST" });
   }
 
-  const { message } = req.body ?? {};
+  const { message, context } = req.body ?? {};
 
   if (!message) {
     return res.status(400).json({ error: "Missing message" });
@@ -16,9 +16,27 @@ export default async function handler(req: any, res: any) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
+    const input = context
+      ? [
+          {
+            role: "system",
+            content:
+              "You are assisting with Time & Attendance operations. Prefer answers grounded in the provided operational context. If context is missing for a requested detail, say what is missing.",
+          },
+          {
+            role: "system",
+            content: `Current Time & Attendance context:\n${JSON.stringify(context, null, 2)}`,
+          },
+          {
+            role: "user",
+            content: message,
+          },
+        ]
+      : message;
+
     const response = await client.responses.create({
       model: "gpt-4o-mini",
-      input: message,
+      input,
     });
 
     const text =
