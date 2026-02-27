@@ -3,6 +3,7 @@ import { Icon } from '../Icon';
 import { recentConversations } from '../../data/chatData';
 import type { ChatConversation } from '../../data/chatData';
 import MarkdownContent from '../MarkdownContent';
+import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
 
 const CHAT_SEEDED_PROMPT_KEY = 'bhr-chat-seeded-prompt';
 const CHAT_SEEDED_PROMPT_EVENT = 'bhr-chat-seeded-prompt';
@@ -424,6 +425,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                         )}
                       </div>
                     ))}
+                    {isSending && <TypingIndicator />}
                   </div>
                 </div>
 
@@ -496,6 +498,7 @@ export function AIChatPanel({ isOpen, onClose, isExpanded, onExpandChange }: AIC
                         )}
                       </div>
                     ))}
+                    {isSending && <TypingIndicator />}
                   </div>
                 </div>
 

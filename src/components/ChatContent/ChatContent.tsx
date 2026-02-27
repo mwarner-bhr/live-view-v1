@@ -3,6 +3,7 @@ import { Icon } from '../Icon';
 import { useChat } from '../../contexts/ChatContext';
 import type { ChatMessage } from '../../data/chatData';
 import MarkdownContent from '../MarkdownContent';
+import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
 
 interface ChatContentProps {
   className?: string;
@@ -106,6 +107,7 @@ export function ChatContent({ className = '' }: ChatContentProps) {
             {messages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             ))}
+            {isSending && <TypingIndicator />}
             <div ref={messagesEndRef} />
           </div>
         </div>
