@@ -32,7 +32,7 @@ const seedRequests: TimeOffRequest[] = [
     id: 'tor-2',
     employeeName: 'Liam Carter',
     type: 'Personal',
-    dateRange: 'Mar 8',
+    dateRange: 'Mar 4 - Mar 6',
     submittedAt: 'Submitted 5h ago',
     status: 'PENDING',
   },
@@ -60,6 +60,10 @@ export function TimeOffRequestsPanel() {
   };
 
   const pendingCount = requests.filter((request) => request.status === 'PENDING').length;
+  const overlapCountByRange = requests.reduce<Record<string, number>>((acc, request) => {
+    acc[request.dateRange] = (acc[request.dateRange] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <aside className="rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
@@ -68,7 +72,7 @@ export function TimeOffRequestsPanel() {
           className="text-[20px] leading-[28px] font-semibold text-[var(--color-primary-strong)]"
           style={{ fontFamily: 'Fields, system-ui, sans-serif' }}
         >
-          Time Off Requests
+          Time Off
         </h3>
         <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-[1000px] bg-[var(--surface-neutral-x-weak)] px-2 text-[12px] font-semibold text-[var(--text-neutral-strong)]">
           {pendingCount}
@@ -83,6 +87,16 @@ export function TimeOffRequestsPanel() {
                 <p className="text-[14px] font-semibold text-[var(--text-neutral-xx-strong)]">{request.employeeName}</p>
                 <p className="text-[13px] text-[var(--text-neutral-medium)]">{request.type} · {request.dateRange}</p>
                 <p className="mt-1 text-[12px] text-[var(--text-neutral-medium)]">{request.submittedAt}</p>
+                {overlapCountByRange[request.dateRange] > 1 && (
+                  <p className="mt-1 text-[12px] text-[#92400e]">
+                    {overlapCountByRange[request.dateRange] - 1} other employee{overlapCountByRange[request.dateRange] - 1 > 1 ? 's have' : ' has'} also requested these day(s).
+                  </p>
+                )}
+                {overlapCountByRange[request.dateRange] <= 1 && (
+                  <p className="mt-1 text-[12px] text-[#166534]">
+                    No other overlapping time off requests on these day(s).
+                  </p>
+                )}
               </div>
               <span
                 className={`rounded-[1000px] px-2 py-1 text-[11px] font-semibold ${

@@ -40,7 +40,7 @@ function formatShiftWindow(employee: EmployeeRecord): string {
   return `${start} - ${end}`;
 }
 
-type GroupKey = 'attention' | 'monitor' | 'stable';
+type GroupKey = 'attention' | 'monitor' | 'stable' | 'unscheduled';
 
 interface EmployeeViewModel {
   employee: EmployeeRecord;
@@ -66,11 +66,24 @@ function formatStatusClass(status: EmployeeRecord['status']): string {
 function classifyEmployee(employee: EmployeeRecord): EmployeeViewModel {
   const overtimePct = Math.round((employee.overtime.workedThisWeekHours / employee.overtime.thresholdHours) * 100);
   const minsOnBreak = toMinutes(employee.currentSession.breakStartTime);
-  const isScheduled = employee.scheduleTag !== 'UNSCHEDULED' && employee.scheduleTag !== 'PTO';
+  const isUnscheduled = employee.scheduleTag === 'UNSCHEDULED';
+  const isScheduled = !isUnscheduled && employee.scheduleTag !== 'PTO';
   const isLate = isScheduled && employee.status === 'CLOCKED_OUT' && !employee.currentSession.clockInTime;
   const breakRisk = employee.status === 'ON_BREAK' && minsOnBreak !== null && minsOnBreak > employee.baselines.breakLengthMinutes + 10;
   const approachingOt = overtimePct >= 85;
   const monitorOt = overtimePct >= 65;
+
+  if (isUnscheduled) {
+    return {
+      employee,
+      group: 'unscheduled',
+      headline: 'Not scheduled today',
+      sublineClass: 'text-[var(--text-neutral-medium)] italic',
+      showOtBar: true,
+      statusLabel: formatStatusLabel(employee.status),
+      statusClass: formatStatusClass(employee.status),
+    };
+  }
 
   if (isLate) {
     return {
@@ -138,6 +151,9 @@ function groupHeader(group: GroupKey): { label: string; accent: string; pill: st
   if (group === 'monitor') {
     return { label: 'Monitor', accent: 'bg-[#f59e0b]', pill: 'bg-[#f59e0b]' };
   }
+  if (group === 'unscheduled') {
+    return { label: 'Not Scheduled Today', accent: 'bg-[#6b7280]', pill: 'bg-[#4b5563]' };
+  }
   return { label: 'Stable', accent: 'bg-[#22c55e]', pill: 'bg-[#16a34a]' };
 }
 
@@ -151,11 +167,12 @@ export function PeopleTab({ employees, search, className, onEmployeeSelect }: Pe
     attention: viewModels.filter((item) => item.group === 'attention'),
     monitor: viewModels.filter((item) => item.group === 'monitor'),
     stable: viewModels.filter((item) => item.group === 'stable'),
+    unscheduled: viewModels.filter((item) => item.group === 'unscheduled'),
   };
 
   return (
     <section className={className ?? 'mt-4 rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4'}>
-      {(['attention', 'monitor', 'stable'] as GroupKey[]).map((group) => {
+      {(['attention', 'monitor', 'stable', 'unscheduled'] as GroupKey[]).map((group) => {
         const items = grouped[group];
         if (items.length === 0) return null;
 

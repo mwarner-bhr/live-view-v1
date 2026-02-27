@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { workforceEmployees, workforceSettings } from '../mockData';
 import type { EmployeeRecord, WorkforceException } from '../types';
-import { detectWorkforceExceptions, mutateEmployeesForSimulation, summarizeHeader } from '../utils/detectors';
+import { detectWorkforceExceptions, summarizeHeader } from '../utils/detectors';
 
 export interface WorkforceLiveState {
   employees: EmployeeRecord[];
@@ -18,17 +18,8 @@ export interface WorkforceLiveState {
 }
 
 export function useWorkforcePulseLive(): WorkforceLiveState {
-  const [employees, setEmployees] = useState<EmployeeRecord[]>(() => structuredClone(workforceEmployees));
-  const [lastUpdated, setLastUpdated] = useState(() => new Date().toISOString());
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setEmployees((prev) => mutateEmployeesForSimulation(prev, workforceSettings));
-      setLastUpdated(new Date().toISOString());
-    }, 10000);
-
-    return () => window.clearInterval(interval);
-  }, []);
+  const [employees] = useState<EmployeeRecord[]>(() => structuredClone(workforceEmployees));
+  const [lastUpdated] = useState(() => new Date().toISOString());
 
   const exceptions = useMemo(
     () => detectWorkforceExceptions(employees, workforceSettings, lastUpdated),

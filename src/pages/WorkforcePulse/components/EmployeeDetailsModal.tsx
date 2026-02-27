@@ -54,6 +54,11 @@ function addMinutesToHHMM(hhmm: string, minutes: number): string {
   return `${twelveHour}:${String(endM).padStart(2, '0')} ${period}`;
 }
 
+function hhmmToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
 function formatShiftWindow(employee: EmployeeRecord): string {
   const [h, m] = employee.baselines.startWindow.start.split(':').map(Number);
   const period = h >= 12 ? 'PM' : 'AM';
@@ -66,6 +71,73 @@ function formatShiftWindow(employee: EmployeeRecord): string {
 function minutesSince(iso?: string): number | null {
   if (!iso) return null;
   return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+}
+
+interface TimingDetail {
+  label: string;
+  value: string;
+  valueClass?: string;
+}
+
+function timingDetails(employee: EmployeeRecord): TimingDetail[] {
+  const details: TimingDetail[] = [];
+  const isScheduled = employee.scheduleTag !== 'UNSCHEDULED' && employee.scheduleTag !== 'PTO';
+  const shiftStartWindowEnd = hhmmToMinutes(employee.baselines.startWindow.end);
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const clockInIso = employee.currentSession.clockInTime;
+  const breakMins = minutesSince(employee.currentSession.breakStartTime);
+
+  if (clockInIso) {
+    details.push({
+      label: 'Clocked in',
+      value: formatClockIn(clockInIso),
+    });
+
+    if (isScheduled) {
+      const clockIn = new Date(clockInIso);
+      const clockInMins = clockIn.getHours() * 60 + clockIn.getMinutes();
+      if (clockInMins > shiftStartWindowEnd) {
+        details.push({
+          label: 'Late clock-in',
+          value: `${clockInMins - shiftStartWindowEnd} min late`,
+          valueClass: 'text-[#dc2626]',
+        });
+      } else {
+        details.push({
+          label: 'Start timing',
+          value: 'On time',
+          valueClass: 'text-[#166534]',
+        });
+      }
+    }
+  } else if (isScheduled && nowMins > shiftStartWindowEnd) {
+    details.push({
+      label: 'Current lateness',
+      value: `${nowMins - shiftStartWindowEnd} min late (not clocked in)`,
+      valueClass: 'text-[#dc2626]',
+    });
+  } else if (!clockInIso) {
+    details.push({
+      label: 'Clock-in',
+      value: 'Not clocked in yet',
+    });
+  }
+
+  if (employee.status === 'ON_BREAK' && breakMins !== null) {
+    const remaining = employee.baselines.breakLengthMinutes - breakMins;
+    details.push({
+      label: 'Break elapsed',
+      value: `${breakMins} min`,
+    });
+    details.push({
+      label: remaining >= 0 ? 'Break remaining' : 'Break over by',
+      value: `${Math.abs(remaining)} min`,
+      valueClass: remaining >= 0 ? 'text-[var(--text-neutral-strong)]' : 'text-[#dc2626]',
+    });
+  }
+
+  return details;
 }
 
 function riskHeadline(employee: EmployeeRecord, overtimePct: number): { text: string; className: string } {
@@ -91,6 +163,7 @@ export function EmployeeDetailsModal({ employee, onClose }: EmployeeDetailsModal
   const shiftWindow = formatShiftWindow(employee);
   const note = riskHeadline(employee, overtimePct);
   const scheduleLabel = scheduleTagLabel(employee.scheduleTag);
+  const shiftTimingDetails = timingDetails(employee);
   const googleMapEmbedUrl = location
     ? `https://www.google.com/maps?q=${encodeURIComponent(`${location.lat},${location.lng}`)}&z=13&output=embed`
     : null;
@@ -142,6 +215,15 @@ export function EmployeeDetailsModal({ employee, onClose }: EmployeeDetailsModal
               </span>
             </div>
             <p className={`mt-2 text-[14px] ${note.className}`}>{note.text}</p>
+            <div className="mt-3 grid gap-1 rounded-[10px] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-xx-weak)] p-2">
+              <p className="text-[12px] font-semibold text-[var(--text-neutral-medium)]">Shift Timing Details</p>
+              {shiftTimingDetails.map((item) => (
+                <div key={item.label} className="flex items-center justify-between gap-2 text-[13px]">
+                  <span className="text-[var(--text-neutral-medium)]">{item.label}</span>
+                  <span className={item.valueClass ?? 'text-[var(--text-neutral-strong)]'}>{item.value}</span>
+                </div>
+              ))}
+            </div>
             <div className="mt-3 max-w-[220px]">
               <div className="flex items-center justify-between text-[13px] text-[var(--text-neutral-medium)]">
                 <span>OT</span>

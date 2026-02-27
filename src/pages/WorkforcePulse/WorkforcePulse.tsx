@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useWorkforcePulseLive } from './hooks/useWorkforcePulseLive';
-import { HeaderSummary } from './components/HeaderSummary';
 import { SearchInput } from './components/SearchInput';
 import { PeopleTab } from './components/PeopleTab';
 import { AIInsightsPanel } from './components/AIInsightsPanel';
@@ -55,14 +54,8 @@ export function WorkforcePulse({ embedded = false }: WorkforcePulseProps) {
 
   return (
     <div className={embedded ? '' : 'min-h-full bg-[var(--surface-neutral-xx-weak)] p-8'}>
-      <HeaderSummary
-        counts={live.counts}
-        statusSentence={live.statusSentence}
-        lastUpdated={live.lastUpdated}
-      />
-
-      <section className="mt-4">
-        <div className="grid gap-4 xl:grid-cols-[3fr_1fr]">
+      <section>
+        <div className="grid gap-4 xl:grid-cols-[2.7fr_1.3fr]">
           <div className="rounded-[var(--radius-small)] border border-[var(--border-neutral-x-weak)] bg-[var(--surface-neutral-white)] p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">

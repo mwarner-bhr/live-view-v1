@@ -28,36 +28,50 @@ function summarizeInsight(exception: WorkforceException): InsightShortcut {
   if (exception.type === 'OVERTIME_RISK') {
     return {
       id: exception.id,
-      text: `${exception.employee.name} may hit overtime soon.`,
+      text: `${exception.employee.name} is on track to hit overtime this shift.`,
       prompt: `Review overtime risk for ${exception.employee.name}. Suggest 2 scheduling adjustments for today and explain tradeoffs.`,
     };
   }
   if (exception.type === 'BREAK_RISK') {
     return {
       id: exception.id,
-      text: `${exception.employee.name} is trending over break allowance.`,
+      text: `${exception.employee.name} has been on break longer than expected.`,
       prompt: `Analyze break compliance risk for ${exception.employee.name} and recommend a manager action plan for the next 2 hours.`,
     };
   }
   if (exception.type === 'LATE_VS_SCHEDULE') {
     return {
       id: exception.id,
-      text: `${exception.employee.name} missed scheduled start window.`,
+      text: `${exception.employee.name} hasn’t clocked in and is past the scheduled start window.`,
       prompt: `Create a coverage recovery plan for a missed shift start by ${exception.employee.name}, with immediate and backup actions.`,
     };
   }
   if (exception.type === 'PRESENCE_CONFIDENCE') {
     return {
       id: exception.id,
-      text: `Clock-in confidence is low for ${exception.employee.name}.`,
+      text: `Clock-in details for ${exception.employee.name} look unusual and may need a quick check.`,
       prompt: `Investigate low clock-in confidence for ${exception.employee.name} and list verification steps with priority order.`,
     };
   }
   if (exception.type === 'TIME_INTEGRITY') {
     return {
       id: exception.id,
-      text: `${exception.employee.name} has timecard integrity flags.`,
+      text: `${exception.employee.name} has time entries that probably need a quick review.`,
       prompt: `Summarize timecard integrity issues for ${exception.employee.name} and propose a corrective workflow for the manager.`,
+    };
+  }
+  if (exception.type === 'COVERAGE_GAP') {
+    return {
+      id: exception.id,
+      text: `Coverage may get tight if ${exception.employee.name} stays unavailable.`,
+      prompt: `Recommend 2 options to close the coverage gap related to ${exception.employee.name}, including impact on cost and compliance.`,
+    };
+  }
+  if (exception.type === 'BEHAVIOR_DEVIATION') {
+    return {
+      id: exception.id,
+      text: `${exception.employee.name}'s shift pattern looks different than usual today.`,
+      prompt: `Explain possible causes for ${exception.employee.name}'s unusual shift pattern and suggest what a manager should confirm first.`,
     };
   }
   return {
@@ -76,7 +90,7 @@ function openAskAI(prompt: string, autoSend = false) {
 }
 
 export function AIInsightsPanel({ exceptions, counts, lastUpdated }: AIInsightsPanelProps) {
-  const topInsights = exceptions.slice(0, 3).map(summarizeInsight);
+  const topInsights = exceptions.slice(0, 5).map(summarizeInsight);
   const coverageHeadcount = counts.clockedIn + counts.onBreak;
 
   return (
