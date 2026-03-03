@@ -116,6 +116,10 @@ export function ManagerLiveViewPage({ embedded = false }: ManagerLiveViewPagePro
     setAlerts((current) => current.filter((item) => item.id !== alert.id));
   };
 
+  const handleIgnoreAllAlerts = () => {
+    setAlerts([]);
+  };
+
   if (isLoading) {
     return <div className="p-6 text-sm text-[var(--text-neutral-medium)]">Loading manager live view...</div>;
   }
@@ -166,6 +170,7 @@ export function ManagerLiveViewPage({ embedded = false }: ManagerLiveViewPagePro
           employeesById={employeesById}
           showRisks={showRisks}
           onAlertCta={handleAlertCta}
+          onIgnoreAllAlerts={handleIgnoreAllAlerts}
         />
       </div>
 
