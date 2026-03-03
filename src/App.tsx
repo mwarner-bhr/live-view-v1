@@ -33,7 +33,8 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/my-info" element={<MyInfo />} />
                   <Route path="/people" element={<People />} />
-                  <Route path="/time-attendance" element={<TimeAttendance />} />
+                  <Route path="/time-attendance" element={<TimeAttendance initialTab="Live View" />} />
+                  <Route path="/time-attendance/live-view" element={<TimeAttendance initialTab="Live View" />} />
                   <Route path="/people/new" element={<NewEmployeePage />} />
                   <Route path="/hiring" element={<Hiring />} />
                   <Route path="/hiring/job/:id" element={<JobOpeningDetail />} />

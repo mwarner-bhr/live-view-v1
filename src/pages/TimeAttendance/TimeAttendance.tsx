@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Icon } from '../../components';
+import { ManagerLiveViewPage } from '../ManagerLiveView/ManagerLiveViewPage';
+import { CalendarView } from './CalendarView';
 import { WorkforcePulse } from '../WorkforcePulse';
 
-const tabs = ['My Team', 'Scheduler', 'Timesheets', 'Project Tracking'] as const;
-type TabKey = typeof tabs[number];
+const allTabs = ['My Team', 'Live View', 'Calendar', 'Scheduler', 'Timesheets', 'Project Tracking'] as const;
+type TabKey = typeof allTabs[number];
+
+const visibleTabs: TabKey[] = ['Live View', 'Calendar', 'Scheduler', 'Timesheets', 'Project Tracking'];
 
 type ShiftType = 'teal' | 'purple' | 'vacation';
 
@@ -620,14 +624,18 @@ function Scheduler({ weekOffset, onWeekOffsetChange }: SchedulerProps) {
   );
 }
 
-export function TimeAttendance() {
-  const [activeTab, setActiveTab] = useState<TabKey>('My Team');
+interface TimeAttendanceProps {
+  initialTab?: TabKey;
+}
+
+export function TimeAttendance({ initialTab = 'Live View' }: TimeAttendanceProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [weekOffset, setWeekOffset] = useState(0);
 
   return (
     <div className="min-h-full bg-[var(--surface-neutral-xx-weak)]">
       <section className="px-8 pt-6 pb-4">
-        <div className="flex items-end justify-between gap-8">
+        <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <h1
               className="text-[44px] leading-[52px] font-bold text-[var(--color-primary-strong)]"
@@ -640,8 +648,8 @@ export function TimeAttendance() {
             </p>
           </div>
 
-          <div className="flex items-end">
-            {tabs.map((tab) => {
+          <div className="flex flex-wrap items-end">
+            {visibleTabs.map((tab) => {
               const isActive = tab === activeTab;
               return (
                 <button
@@ -662,7 +670,7 @@ export function TimeAttendance() {
 
         <div className="mt-4 h-px bg-[var(--border-neutral-x-weak)]" />
 
-        {activeTab !== 'Scheduler' && activeTab !== 'My Team' && (
+        {(activeTab === 'Timesheets' || activeTab === 'Project Tracking') && (
           <div className="mt-3 flex items-center justify-between">
             <Button variant="standard" size="small" icon="sliders" showCaret>
               Filters (2)
@@ -689,6 +697,12 @@ export function TimeAttendance() {
           <div className="mt-4">
             <WorkforcePulse embedded />
           </div>
+        ) : activeTab === 'Live View' ? (
+          <div className="mt-4">
+            <ManagerLiveViewPage embedded />
+          </div>
+        ) : activeTab === 'Calendar' ? (
+          <CalendarView />
         ) : activeTab === 'Scheduler' ? (
           <Scheduler weekOffset={weekOffset} onWeekOffsetChange={setWeekOffset} />
         ) : (

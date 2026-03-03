@@ -12,3 +12,4 @@ export { DatePickerDemo } from './DatePickerDemo';
 export { CreateJobOpening } from './CreateJobOpening';
 export { JobAIPrototype } from './JobAIPrototype';
 export { TimeAttendance } from './TimeAttendance';
+export { ManagerLiveView } from './ManagerLiveView';

@@ -90,6 +90,26 @@ npm run build
 npm run preview
 ```
 
+### Run tests (Jest + React Testing Library)
+```bash
+npm run test
+```
+
+## Manager Live View
+
+- Route: `/time-attendance/live-view`
+- Page: prioritized employee work queue using `attentionScore` with secondary sort by department then name.
+- Team Health panel:
+  - Alerts lane for urgent/time-sensitive items with one CTA per tile.
+  - Risks lane for pattern insights, trend direction, and expandable evidence.
+- Mock API module: `src/api/mockClockApi.ts`
+- Types: `src/types/managerLiveView.ts`
+- Tests:
+  - Unit: `src/__tests__/attentionScore.test.ts`
+  - Integration: `src/__tests__/ManagerLiveViewPage.test.tsx`
+
+If Jest dependencies are not installed yet in your local environment, run `npm install` first.
+
 ## Project Structure
 
 ```
